@@ -1,11 +1,13 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import MensajeValidacion from '../components/MensajeValidacion';
 
-export default function CrearFactura() {
+export default function ActualizarFactura() {
 
     const history = useHistory();
+
+    const { id } = useParams();
 
     const [form, setForm] = useState({
         cliente: '',
@@ -13,6 +15,9 @@ export default function CrearFactura() {
         fechaFactura: (new Date()).toISOString().substring(0, 10),
         baseImponible: 0,
         tipoIVA: 0.21,
+    })
+
+    const [camposCalculados, setCamposCalculados] = useState({
         importeIVA: 0,
         totalFactura: 0
     })
@@ -27,7 +32,30 @@ export default function CrearFactura() {
         message: ''
     })
 
-    const [formValid, setFormValid] = useState(false)
+    const [formValid, setFormValid] = useState(false);
+
+    useEffect(() => {
+        axios.get('http://localhost:8000/facturas/' + id)
+             .then(res => {
+                 setForm({
+                    cliente: res.data.factura.cliente,
+                    cif: res.data.factura.cif,
+                    fechaFactura: (new Date(res.data.factura.fechaFactura)).toISOString().substring(0, 10),
+                    baseImponible: res.data.factura.baseImponible,
+                    tipoIVA: res.data.factura.tipoIVA,
+                    importeIVA: 0,
+                    totalFactura: 0
+                 })
+             })
+             .catch(err => console.log(err))
+    }, [id])
+
+    useEffect(() => {
+        setCamposCalculados({
+            importeIVA: form.baseImponible * 1 * form.tipoIVA,
+            totalFactura: form.baseImponible * 1 + form.baseImponible * 1 * form.tipoIVA
+        })
+    }, [form.baseImponible, form.tipoIVA])
 
     useEffect(() => {
         if(form.cliente.length === 0) {
@@ -66,41 +94,16 @@ export default function CrearFactura() {
     }, [clienteValid, cifValid])
 
     const handleChangeForm = (event) => {
-        if(event.target.name === 'baseImponible') {
-            setForm(prevForm => {
-                const newImporteIVA = event.target.value * 1 * prevForm.tipoIVA ;
-                const newTotalFactura = event.target.value * 1 + event.target.value * prevForm.tipoIVA;
-                return {
-                    ...prevForm, 
-                    [event.target.name]: event.target.value, 
-                    importeIVA: newImporteIVA,
-                    totalFactura: newTotalFactura
-                }
-            })
-        } else if (event.target.name === 'tipoIVA') {
-            setForm(prevForm => {
-                const newImporteIVA = event.target.value * 1 * prevForm.baseImponible;
-                const newTotalFactura = prevForm.baseImponible * 1 + event.target.value * prevForm.baseImponible ;
-                return {
-                    ...prevForm, 
-                    [event.target.name]: event.target.value, 
-                    importeIVA: newImporteIVA,
-                    totalFactura: newTotalFactura
-                }
-            })
-        } else {
-            setForm({
-                ...form,
-                [event.target.name]: event.target.value
-            })
-        }
-
+        setForm({
+            ...form,
+            [event.target.name]: event.target.value
+        })
     }
 
     const handleSubmit = (event) => {
         event.preventDefault();
         const {importeIVA, totalFactura, ...factura} = form; // Uso de operador rest (...) en desestructuración
-        axios.post('http://localhost:8000/facturas', factura)
+        axios.put('http://localhost:8000/facturas/' + id, factura)
              .then(res => {
                  console.log(res);
                  history.push('/');
@@ -113,7 +116,7 @@ export default function CrearFactura() {
             <div className="row">
                 <div className="col-100">
                     <form onSubmit={handleSubmit}>
-                        <h1>Nueva Factura</h1>
+                        <h1>Modificar Factura</h1>
                         <div className="row">
                             <div className="col-100">
                                 <label>
@@ -175,7 +178,7 @@ export default function CrearFactura() {
                                 <label>Importe IVA</label>
                                 <input type="number" 
                                        name="importeIVA"
-                                       value={form.importeIVA}
+                                       value={camposCalculados.importeIVA}
                                        readOnly/>
                             </div>
                         </div>
@@ -185,14 +188,14 @@ export default function CrearFactura() {
                                 <label>Total Factura con IVA</label>
                                 <input type="number" 
                                        name="totalFactura"
-                                       value={form.totalFactura}
+                                       value={camposCalculados.totalFactura}
                                        readOnly/>
                             </div>
                         </div>
                         <div className="flex j-end a-center m-t">
                             <button type="submit"
                                     disabled={!formValid}>
-                                Enviar
+                                Guardar cambios
                             </button>
                         </div>
                     </form>
