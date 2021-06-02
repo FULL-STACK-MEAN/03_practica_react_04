@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 
@@ -15,6 +15,54 @@ export default function CrearFactura() {
         importeIVA: 0,
         totalFactura: 0
     })
+
+    const [clienteValid, setClienteValid] = useState({
+        valid: false,
+        message: ''
+    })
+
+    const [cifValid, setCifValid] = useState({
+        valid: false,
+        message: ''
+    })
+
+    const [formValid, setFormValid] = useState(false)
+
+    useEffect(() => {
+        if(form.cliente.length === 0) {
+            setClienteValid({
+                valid: false,
+                message: 'El cliente es obligatorio'
+            })
+        } else {
+            setClienteValid({
+                valid: true,
+                message: 'OK'
+            })
+        }
+    }, [form.cliente])
+
+    useEffect(() => {
+        if(form.cif.length === 0) {
+            setCifValid({
+                valid: false,
+                message: 'El cif es obligatorio'
+            })
+        } else {
+            setCifValid({
+                valid: true,
+                message: 'OK'
+            })
+        }
+    }, [form.cif])
+
+    useEffect(() => {
+        if(clienteValid.valid && cifValid.valid) {
+            setFormValid(true);
+        } else {
+            setFormValid(false);
+        }
+    }, [clienteValid, cifValid])
 
     const handleChangeForm = (event) => {
         if(event.target.name === 'baseImponible') {
@@ -135,7 +183,10 @@ export default function CrearFactura() {
                             </div>
                         </div>
                         <div className="flex j-end a-center m-t">
-                            <button type="submit">Enviar</button>
+                            <button type="submit"
+                                    disabled={!formValid}>
+                                Enviar
+                            </button>
                         </div>
                     </form>
                 </div>
