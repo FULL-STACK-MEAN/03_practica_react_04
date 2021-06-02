@@ -1,6 +1,10 @@
-import React, {useState} from 'react'
+import React, {useState} from 'react';
+import axios from 'axios';
+import { useHistory } from 'react-router-dom';
 
 export default function CrearFactura() {
+
+    const history = useHistory();
 
     const [form, setForm] = useState({
         cliente: '',
@@ -44,11 +48,22 @@ export default function CrearFactura() {
 
     }
 
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const {importeIVA, totalFactura, ...factura} = form; // Uso de operador rest (...) en desestructuración
+        axios.post('http://localhost:8000/facturas', factura)
+             .then(res => {
+                 console.log(res);
+                 history.push('/');
+              })
+             .catch(err => console.log(err))
+    }
+
     return (
         <div className="container show">
             <div className="row">
                 <div className="col-100">
-                    <form>
+                    <form onSubmit={handleSubmit}>
                         <h1>Nueva Factura</h1>
                         <div className="row">
                             <div className="col-100">
@@ -120,7 +135,7 @@ export default function CrearFactura() {
                             </div>
                         </div>
                         <div className="flex j-end a-center m-t">
-                            <button>Enviar</button>
+                            <button type="submit">Enviar</button>
                         </div>
                     </form>
                 </div>
