@@ -15,10 +15,9 @@ export default function ListadoFacturas() {
     })
 
     const handleDeleteFactura = (event) => {
-        console.log(event)
-        // axios.delete('http://localhost:8000/facturas/' + id)
-        //      .then(res => {console.log(res)})
-        //      .catch(err => {console.log(err)})
+        axios.delete('http://localhost:8000/facturas/' + event.target.id)
+             .then(res => {console.log(res)})
+             .catch(err => {console.log(err)})
     }
 
     return (
@@ -51,7 +50,7 @@ export default function ListadoFacturas() {
                                         <Link to={"/actualizar-factura/" + factura.id}>
                                             <button className="outline">Actualizar</button>
                                         </Link>
-                                        <button onClick={handleDeleteFactura} idFactura={factura.id}>Eliminar</button>
+                                        <button onClick={handleDeleteFactura} id={factura.id}>Eliminar</button>
                                     </td>
                                 </tr>
                                })
